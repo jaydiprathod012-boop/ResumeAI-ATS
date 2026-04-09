@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ResumeAI — Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet"/>
+</head>
+<body class="dashboard-page">
+
+  <div class="grid-bg"></div>
+  <div class="scanline"></div>
+
+  <!-- NAV -->
+  <nav class="top-nav">
+    <div class="nav-logo">RESUME<span class="neon-cyan">AI</span></div>
+    <div class="nav-center">
+      <span class="nav-tag">ATS ANALYZER v2.0</span>
+    </div>
+    <div class="nav-right">
+      <span class="user-badge" id="user-badge">USER</span>
+      <button class="logout-btn" onclick="logout()">LOGOUT</button>
+    </div>
+  </nav>
+
+  <main class="dashboard-main">
+
+    <!-- INPUT SECTION -->
+    <section class="input-section">
+      <div class="section-header">
+        <div class="section-icon cyan">📄</div>
+        <div>
+          <h2 class="section-title">UPLOAD YOUR RESUME</h2>
+          <p class="section-desc">Paste text or upload a .txt / .pdf file for instant ATS analysis</p>
+        </div>
+      </div>
+
+      <div class="input-tabs">
+        <button class="tab-btn active" onclick="switchTab('paste', this)">PASTE TEXT</button>
+        <button class="tab-btn" onclick="switchTab('upload', this)">UPLOAD FILE</button>
+      </div>
+
+      <div id="tab-paste" class="tab-content active">
+        <div class="textarea-wrapper">
+          <textarea id="resume-text" class="resume-textarea" placeholder="Paste your resume content here...
+
+Example:
+John Doe | john@email.com | LinkedIn
+
+EDUCATION
+B.Tech in Computer Science, XYZ University (2020–2024)
+
+EXPERIENCE
+Software Developer Intern at ABC Corp
+- Developed REST APIs using Java and Spring Boot
+- Worked on Python scripts for data analysis
+
+SKILLS
+Java, Python, HTML, CSS, JavaScript, SQL, Git, React
+
+PROJECTS
+Portfolio Website — Built using HTML, CSS, JavaScript
+..."></textarea>
+          <div class="char-counter" id="char-counter">0 words</div>
+        </div>
+      </div>
+
+      <div id="tab-upload" class="tab-content">
+        <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()" ondragover="handleDragOver(event)" ondrop="handleDrop(event)">
+          <div class="upload-icon">⬆</div>
+          <p class="upload-text">Click to upload or drag & drop</p>
+          <p class="upload-sub">.txt and .pdf files supported</p>
+          <input type="file" id="file-input" accept=".txt,.pdf" style="display:none" onchange="handleFileUpload(event)" />
+        </div>
+        <div class="file-status" id="file-status"></div>
+      </div>
+
+      <button class="analyze-btn" id="analyze-btn" onclick="analyzeResume()">
+        <span class="btn-text">⚡ ANALYZE RESUME</span>
+        <span class="btn-glow"></span>
+      </button>
+    </section>
+
+    <!-- RESULTS SECTION -->
+    <section class="results-section" id="results-section" style="display:none">
+
+      <!-- ATS Score Hero -->
+      <div class="score-hero">
+        <div class="score-ring-wrapper">
+          <svg class="score-ring" viewBox="0 0 200 200">
+            <circle class="ring-bg" cx="100" cy="100" r="80"/>
+            <circle class="ring-fill" id="ring-fill" cx="100" cy="100" r="80" stroke-dasharray="502" stroke-dashoffset="502"/>
+          </svg>
+          <div class="score-center">
+            <div class="score-number" id="score-display">0</div>
+            <div class="score-label">ATS SCORE</div>
+          </div>
+        </div>
+        <div class="score-meta">
+          <div class="score-grade" id="score-grade">—</div>
+          <div class="score-verdict" id="score-verdict">Analyzing...</div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar-track">
+              <div class="progress-bar-fill" id="progress-bar-fill"></div>
+            </div>
+            <div class="progress-labels">
+              <span>0</span><span>25</span><span>50</span><span>75</span><span>100</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Breakdown Cards -->
+      <div class="breakdown-grid">
+        <div class="breakdown-card cyan-card">
+          <div class="bc-label">SKILLS SCORE</div>
+          <div class="bc-value" id="skills-score">0</div>
+          <div class="bc-bar"><div class="bc-fill cyan-fill" id="skills-bar"></div></div>
+          <div class="bc-weight">40% weight</div>
+        </div>
+        <div class="breakdown-card purple-card">
+          <div class="bc-label">KEYWORDS</div>
+          <div class="bc-value" id="keywords-score">0</div>
+          <div class="bc-bar"><div class="bc-fill purple-fill" id="keywords-bar"></div></div>
+          <div class="bc-weight">20% weight</div>
+        </div>
+        <div class="breakdown-card green-card">
+          <div class="bc-label">SECTIONS</div>
+          <div class="bc-value" id="sections-score">0</div>
+          <div class="bc-bar"><div class="bc-fill green-fill" id="sections-bar"></div></div>
+          <div class="bc-weight">20% weight</div>
+        </div>
+        <div class="breakdown-card orange-card">
+          <div class="bc-label">LENGTH</div>
+          <div class="bc-value" id="length-score">0</div>
+          <div class="bc-bar"><div class="bc-fill orange-fill" id="length-bar"></div></div>
+          <div class="bc-weight">20% weight</div>
+        </div>
+      </div>
+
+      <!-- Skills Analysis -->
+      <div class="skills-panel">
+        <div class="panel-header">
+          <h3>SKILLS ANALYSIS</h3>
+        </div>
+        <div class="skills-two-col">
+          <div class="skills-col">
+            <div class="col-title green-text">✔ DETECTED SKILLS</div>
+            <div class="skills-tags" id="matched-skills"></div>
+          </div>
+          <div class="skills-col">
+            <div class="col-title red-text">✘ MISSING SKILLS</div>
+            <div class="skills-tags" id="missing-skills"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Suggestions -->
+      <div class="suggestions-panel" id="suggestions-panel">
+        <div class="panel-header">
+          <h3>💡 SMART SUGGESTIONS</h3>
+        </div>
+        <div id="suggestions-list"></div>
+      </div>
+
+      <!-- Re-analyze -->
+      <div class="reanalyze-wrap">
+        <button class="reanalyze-btn" onclick="resetAnalysis()">↩ ANALYZE NEW RESUME</button>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="script.js"></script>
+  <script>
+    // Load user from session
+    const userEmail = sessionStorage.getItem('resumeai_user') || 'user@demo.com';
+    document.getElementById('user-badge').textContent = userEmail.split('@')[0].toUpperCase();
+
+    // Word counter
+    document.getElementById('resume-text').addEventListener('input', function() {
+      const words = this.value.trim().split(/\s+/).filter(w => w.length > 0).length;
+      document.getElementById('char-counter').textContent = words + ' words';
+    });
+  </script>
+</body>
+</html>
